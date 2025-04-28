@@ -12,10 +12,13 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.mobiletest.helpers.PokemonApi
 import com.example.mobiletest.helpers.PokemonDetail
+import kotlin.system.measureTimeMillis
 
 
 @Composable
 fun PokemonsScreen() {
+    var pokemonsAmount = 10
+
     var pokemons by remember { mutableStateOf<List<PokemonDetail>>(emptyList()) }
     var nextUrl by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(true) }
@@ -24,20 +27,21 @@ fun PokemonsScreen() {
     val listState = rememberLazyListState()
 
     suspend fun loadPokemons(url: String) {
+        println("[DEBUG] Started loading Pokémon list from $url")
         try {
-            if (pokemons.isEmpty())
-                isLoading = true
-            else
-                isLoadingMore = true
+            if (pokemons.isEmpty()) isLoading = true else isLoadingMore = true
 
-            val response = PokemonApi.getPokemonListFromUrl(url)
-
-            val details = response.results.map { pokemon ->
-                PokemonApi.getPokemonDetail(pokemon.url)
+            val elapsedMillis = measureTimeMillis {
+                val response = PokemonApi.getPokemonListFromUrl(url)
+                val details = response.results.map { pokemon ->
+                    PokemonApi.getPokemonDetail(pokemon.url)
+                }
+                pokemons = pokemons + details
+                nextUrl = response.next
             }
 
-            pokemons = pokemons + details
-            nextUrl = response.next
+            println("[DEBUG] ✅ Loaded new Pokémon batch in ${elapsedMillis}ms")
+
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
@@ -47,7 +51,7 @@ fun PokemonsScreen() {
     }
 
     LaunchedEffect(Unit) {
-        loadPokemons("https://pokeapi.co/api/v2/pokemon?limit=10")
+        loadPokemons("https://pokeapi.co/api/v2/pokemon?limit=$pokemonsAmount")
     }
 
     LaunchedEffect(listState) {
