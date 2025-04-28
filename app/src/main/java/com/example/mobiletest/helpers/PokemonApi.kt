@@ -22,9 +22,9 @@ object PokemonApi {
         return client.get("https://pokeapi.co/api/v2/pokemon?limit=$limit").body()
     }
 
-//    suspend fun getPokemonListFromUrl(url: String): PokemonResponse {
-//        return client.get(url).body()
-//    }
+    suspend fun getPokemonListFromUrl(url: String): PokemonResponse {
+        return client.get(url).body()
+    }
 
     suspend fun getPokemonDetail(url: String): PokemonDetail {
         return client.get(url).body()
@@ -33,7 +33,8 @@ object PokemonApi {
 
 @Serializable
 data class PokemonResponse(
-    val results: List<Pokemon>
+    val results: List<Pokemon>,
+    var next: String? = null
 )
 
 @Serializable
